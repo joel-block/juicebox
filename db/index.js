@@ -127,9 +127,9 @@ async function getUserById(userId) {
       return null;
     } else {
       const result = rows[0];
-      const { id, username, name, location, active } = result;
+      const { id, username, name, location } = result;
       const posts = getPostsByUser(id);
-      const user = { id, username, name, location, active, posts };
+      const user = { id, username, name, location, posts };
       return user;
     }
   } catch (error) {
