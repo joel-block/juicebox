@@ -32,15 +32,26 @@ async function createTables() {
 
     await client.query(`
     CREATE TABLE users (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        name VARCHAR(255) NOT NULL,
-        location VARCHAR(255) NOT NULL,
-        active BOOLEAN DEFAULT true
-        );
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      location VARCHAR(255) NOT NULL,
+      active BOOLEAN DEFAULT true
+      );
 
     `);
+
+    await client.query(`
+    CREATE TABLE posts (
+      id SERIAL PRIMARY KEY,
+      "authorId" INTEGER REFERENCES users(id) NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      content TEXT NOT NULL,
+      active BOOLEAN DEFAULT true
+      );
+      
+      `);
 
     console.log("Finished building tables!");
   } catch (error) {
@@ -100,12 +111,12 @@ async function testDB() {
     const posts = await getAllPosts();
     console.log("Result:", posts);
 
-    // console.log("Calling updatePost on posts[0]");
-    // const updatePostResult = await updatePost(posts[0].id, {
-    //   title: "New Title",
-    //   content: "Updated Content",
-    // });
-    // console.log("Result:", updatePostResult);
+    console.log("Calling updatePost on posts[0]");
+    const updatePostResult = await updatePost(posts[0].id, {
+      title: "New Title",
+      content: "Updated Content",
+    });
+    console.log("Result:", updatePostResult);
 
     console.log("Calling getUserById with 1");
     const albert = await getUserById(1);
@@ -117,27 +128,28 @@ async function testDB() {
     throw error;
   }
 }
-async function createPostsTable() {
-  try {
-    console.log("Starting to build tables...");
 
-    await client.query(`
-    CREATE TABLE posts (
-      id SERIAL PRIMARY KEY,
-      "authorId" INTEGER REFERENCES users(id) NOT NULL,
-      title VARCHAR(255) NOT NULL,
-      content TEXT NOT NULL,
-      active BOOLEAN DEFAULT true
-      );
+// async function createPostsTable() {
+//   try {
+//     console.log("Starting to build tables...");
+
+//     await client.query(`
+//     CREATE TABLE posts (
+//       id SERIAL PRIMARY KEY,
+//       "authorId" INTEGER REFERENCES users(id) NOT NULL,
+//       title VARCHAR(255) NOT NULL,
+//       content TEXT NOT NULL,
+//       active BOOLEAN DEFAULT true
+//       );
       
-      `);
+//       `);
 
-    console.log("Finished building tables!");
-  } catch (error) {
-    console.error("Error building tables!");
-    throw error;
-  }
-}
+//     console.log("Finished building tables!");
+//   } catch (error) {
+//     console.error("Error building tables!");
+//     throw error;
+//   }
+// }
 
 async function createInitialPosts() {
   console.log("Starting to create initial posts!");
@@ -172,7 +184,6 @@ async function rebuildDB() {
 
     await dropTables();
     await createTables();
-    await createPostsTable();
     await createInitialUsers();
     await createInitialPosts();
   } catch (error) {

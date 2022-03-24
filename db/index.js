@@ -96,8 +96,8 @@ async function updatePost(id, { title, content, active }) {
 }
 
 async function getAllPosts() {
-  const { rows } = await client.query(
-    `SELECT "authorId", title, content, active
+  const { rows } = await client.query(`
+    SELECT id, "authorId", title, content, active
     FROM posts;
     `
   );
