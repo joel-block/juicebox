@@ -84,7 +84,6 @@ async function createInitialUsers() {
       name: "Joshua",
       location: "Upper East Side",
     });
-    console.log("createUser:", [albert, sandra, glamgal]);
 
     console.log("Finished creating users!");
   } catch (error) {
@@ -97,30 +96,26 @@ async function testDB() {
   try {
     console.log("Starting to test database...");
 
-    console.log("Calling getAllUsers");
+    console.log("Calling getAllUsers...");
     const users = await getAllUsers();
-    console.log("Result:", users);
 
-    console.log("Calling updateUser on users[0]");
+    console.log("Calling updateUser on users[0]...");
     const updateUserResult = await updateUser(users[0].id, {
       name: "Newname sogood",
       location: "Lesterville, KY",
     });
-    console.log("Result:", updateUserResult);
-    console.log("Calling getAllPosts");
-    const posts = await getAllPosts();
-    console.log("Result:", posts);
 
-    console.log("Calling updatePost on posts[0]");
+    console.log("Calling getAllPosts...");
+    const posts = await getAllPosts();
+
+    console.log("Calling updatePost on posts[0]...");
     const updatePostResult = await updatePost(posts[0].id, {
       title: "New Title",
       content: "Updated Content",
     });
-    console.log("Result:", updatePostResult);
 
-    console.log("Calling getUserById with 1");
+    console.log("Calling getUserById with 1...");
     const albert = await getUserById(1);
-    console.log("Result:", albert);
 
     console.log("Finished database tests!");
   } catch (error) {
@@ -129,33 +124,10 @@ async function testDB() {
   }
 }
 
-// async function createPostsTable() {
-//   try {
-//     console.log("Starting to build tables...");
-
-//     await client.query(`
-//     CREATE TABLE posts (
-//       id SERIAL PRIMARY KEY,
-//       "authorId" INTEGER REFERENCES users(id) NOT NULL,
-//       title VARCHAR(255) NOT NULL,
-//       content TEXT NOT NULL,
-//       active BOOLEAN DEFAULT true
-//       );
-      
-//       `);
-
-//     console.log("Finished building tables!");
-//   } catch (error) {
-//     console.error("Error building tables!");
-//     throw error;
-//   }
-// }
-
 async function createInitialPosts() {
-  console.log("Starting to create initial posts!");
+  console.log("Starting to create initial posts...");
   try {
     const [albert, sandra, glamgal] = await getAllUsers();
-    console.log(albert);
     await createPost({
       authorId: albert.id,
       title: "First Post",
@@ -172,9 +144,9 @@ async function createInitialPosts() {
       title: "City Living",
       content: "My ride on the subway today was AWFUL.",
     });
-    console.log("finished creating inital posts!");
+    console.log("Finished creating inital posts!");
   } catch (error) {
-    console.error("problem creating inital posts");
+    console.error("Problem creating inital posts!");
     throw error;
   }
 }
