@@ -13,9 +13,12 @@ async function dropTables() {
   try {
     console.log("Starting to drop tables...");
 
+    // Tables dropped in order of most dependent to independent
     await client.query(`
-        DROP TABLE IF EXISTS posts;
-        DROP TABLE IF EXISTS users;
+      DROP TABLE IF EXISTS post_tags;
+      DROP TABLE IF EXISTS tags;
+      DROP TABLE IF EXISTS posts;
+      DROP TABLE IF EXISTS users;
 
     `);
 
@@ -39,7 +42,6 @@ async function createTables() {
       location VARCHAR(255) NOT NULL,
       active BOOLEAN DEFAULT true
       );
-
     `);
 
     await client.query(`
@@ -50,8 +52,22 @@ async function createTables() {
       content TEXT NOT NULL,
       active BOOLEAN DEFAULT true
       );
-      
-      `);
+    `);
+
+    await client.query(`
+    CREATE TABLE tags (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) UNIQUE NOT NULL
+      );
+    `);
+
+    await client.query(`
+    CREATE TABLE post_tags (
+      "postId" INTEGER REFERENCES posts(id),
+      "tagId" INTEGER REFERENCES tags(id),
+      UNIQUE ("postId", "tagId")
+      );
+    `);
 
     console.log("Finished building tables!");
   } catch (error) {
