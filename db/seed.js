@@ -107,9 +107,9 @@ async function testDB() {
     // });
     // console.log("Result:", updatePostResult);
 
-    // console.log("Calling getUserById with 1");
-    // const albert = await getUserById(1);
-    // console.log("Result:", albert);
+    console.log("Calling getUserById with 1");
+    const albert = await getUserById(1);
+    console.log("Result:", albert);
 
     console.log("Finished database tests!");
   } catch (error) {

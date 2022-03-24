@@ -79,11 +79,8 @@ async function updatePost(id, { title, content, active }) {
   if (setString.length === 0) {
     return;
   }
-
   try {
-    const {
-      rows: [post],
-    } = await client.query(
+    const { rows } = await client.query(
       `
       UPDATE posts
       SET ${setString}
@@ -92,11 +89,12 @@ async function updatePost(id, { title, content, active }) {
     `,
       Object.values({ title, content, active })
     );
-    return post;
+    return rows;
   } catch (error) {
     throw error;
   }
 }
+
 async function getAllPosts() {
   const { rows } = await client.query(
     `SELECT "authorId", title, content, active
@@ -105,9 +103,10 @@ async function getAllPosts() {
   );
   return rows;
 }
+
 async function getPostsByUser(userId) {
   try {
-    const { rows } = client.query(`
+    const { rows } = await client.query(`
       SELECT * FROM posts
       WHERE "authorId"=${userId};
     `);
@@ -119,18 +118,18 @@ async function getPostsByUser(userId) {
 }
 async function getUserById(userId) {
   try {
-    const { rows } = client.query(`
+    const { rows } = await client.query(`
     SELECT * FROM users
     WHERE id=${userId}
     `);
     if (rows.length === 0) {
       return null;
     } else {
-      const result = rows[0];
-      delete result.password;
-      const posts = getPostsByUser(id);
-      result.posts = posts;
-      return result;
+      const user = rows[0];
+      delete user.password;
+      const posts = await getPostsByUser(userId);
+      user.posts = posts;
+      return user;
     }
   } catch (error) {
     throw error;
