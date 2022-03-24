@@ -1,4 +1,13 @@
-const { client, getAllUsers, createUser, updateUser } = require("./index");
+const {
+  client,
+  getAllUsers,
+  createUser,
+  updateUser,
+  createPost,
+  getAllPosts,
+  updatePost,
+  getUserById,
+} = require("./index");
 
 async function dropTables() {
   try {
@@ -36,18 +45,6 @@ async function createTables() {
     console.log("Finished building tables!");
   } catch (error) {
     console.error("Error building tables!");
-    throw error;
-  }
-}
-
-async function rebuildDB() {
-  try {
-    client.connect();
-
-    await dropTables();
-    await createTables();
-    await createInitialUsers();
-  } catch (error) {
     throw error;
   }
 }
@@ -99,6 +96,20 @@ async function testDB() {
       location: "Lesterville, KY",
     });
     console.log("Result:", updateUserResult);
+    console.log("Calling getAllPosts");
+    const posts = await getAllPosts();
+    console.log("Result:", posts);
+
+    // console.log("Calling updatePost on posts[0]");
+    // const updatePostResult = await updatePost(posts[0].id, {
+    //   title: "New Title",
+    //   content: "Updated Content",
+    // });
+    // console.log("Result:", updatePostResult);
+
+    // console.log("Calling getUserById with 1");
+    // const albert = await getUserById(1);
+    // console.log("Result:", albert);
 
     console.log("Finished database tests!");
   } catch (error) {
@@ -106,20 +117,20 @@ async function testDB() {
     throw error;
   }
 }
-async function createPostTable() {
+async function createPostsTable() {
   try {
     console.log("Starting to build tables...");
 
     await client.query(`
     CREATE TABLE posts (
-        id SERIAL PRIMARY KEY,
-        "authorId" INTEGER REFERENCES users(id) NOT NULL,
-        title VARCHAR(255) NOT NULL,
-        content TEXT NOT NULL,
-        active BOOLEAN DEFAULT true
-        );
-
-    `);
+      id SERIAL PRIMARY KEY,
+      "authorId" INTEGER REFERENCES users(id) NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      content TEXT NOT NULL,
+      active BOOLEAN DEFAULT true
+      );
+      
+      `);
 
     console.log("Finished building tables!");
   } catch (error) {
@@ -128,8 +139,48 @@ async function createPostTable() {
   }
 }
 
+async function createInitialPosts() {
+  console.log("Starting to create initial posts!");
+  try {
+    const [albert, sandra, glamgal] = await getAllUsers();
+    console.log(albert);
+    await createPost({
+      authorId: albert.id,
+      title: "First Post",
+      content:
+        "This is my first post. I hope I love writing blogs as much as I love writing them.",
+    });
+    await createPost({
+      authorId: sandra.id,
+      title: "Beach",
+      content: "I like the sand.",
+    });
+    await createPost({
+      authorId: glamgal.id,
+      title: "City Living",
+      content: "My ride on the subway today was AWFUL.",
+    });
+    console.log("finished creating inital posts!");
+  } catch (error) {
+    console.error("problem creating inital posts");
+    throw error;
+  }
+}
+async function rebuildDB() {
+  try {
+    client.connect();
+
+    await dropTables();
+    await createTables();
+    await createPostsTable();
+    await createInitialUsers();
+    await createInitialPosts();
+  } catch (error) {
+    throw error;
+  }
+}
+
 rebuildDB()
-  .then(createPostTable)
   .then(testDB)
   .catch(console.error)
   .finally(() => client.end());
