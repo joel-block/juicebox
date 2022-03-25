@@ -205,19 +205,23 @@ async function createTags(tagList) {
 
 // create an individual tag that will eventually be attached to post object
 async function createPostTag(postId, tagId) {
+  console.log('attempting to run createPostTag...')
   try {
-    await client.query(
-      `
+    await client.query(`
       INSERT INTO post_tags("postId", "tagId")
       VALUES ($1, $2)
       ON CONFLICT ("postId", "tagId") DO NOTHING;
-      `,
-      [(postId, tagId)]
-    );
+      `, [postId, tagId]);
   } catch (error) {
     throw error;
   }
 }
+
+// client.connect()
+//   .then(() => createPostTag(2, 2))
+//   .catch(console.error)
+//   .finally(() => client.end());
+
 
 // add tags to post that will eventually be attached to post object
 async function addTagsToPost(postId, tagList) {
@@ -293,4 +297,6 @@ module.exports = {
   getAllPosts,
   getPostsByUser,
   getUserById,
+  createTags,
+  addTagsToPost,
 };
