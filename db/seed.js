@@ -146,48 +146,32 @@ async function createInitialPosts() {
   console.log("Starting to create initial posts...");
   try {
     const [albert, sandra, glamgal] = await getAllUsers();
+
     await createPost({
       authorId: albert.id,
       title: "First Post",
       content:
         "This is my first post. I hope I love writing blogs as much as I love writing them.",
+      tags: ["#happy", "#youcandoanything"],
     });
+
     await createPost({
       authorId: sandra.id,
       title: "Beach",
       content: "I like the sand.",
+      tags: ["#happy", "#worst-day-ever"],
     });
+
     await createPost({
       authorId: glamgal.id,
       title: "City Living",
       content: "My ride on the subway today was AWFUL.",
+      tags: ["#happy", "#youcandoanything", "#catmandoeverything"],
     });
+
     console.log("Finished creating inital posts!");
   } catch (error) {
     console.error("Problem creating inital posts!");
-    throw error;
-  }
-}
-
-async function createInitialTags() {
-  console.log("Starting to create tags...");
-  try {
-    const [happy, sad, inspo, catman] = await createTags([
-      "#happy",
-      "#worst-day-ever",
-      "#youcandoanything",
-      "#catmandoeverything",
-    ]);
-
-    const [postOne, postTwo, postThree] = await getAllPosts();
-
-    await addTagsToPost(postOne.id, [happy, inspo]);
-    await addTagsToPost(postTwo.id, [sad, inspo]);
-    await addTagsToPost(postThree.id, [happy, catman, inspo]);
-
-    console.log("Finished creating tags!");
-  } catch (error) {
-    console.error("Error creating tags!");
     throw error;
   }
 }
@@ -200,7 +184,6 @@ async function rebuildDB() {
     await createTables();
     await createInitialUsers();
     await createInitialPosts();
-    await createInitialTags();
   } catch (error) {
     throw error;
   }
@@ -210,3 +193,28 @@ rebuildDB()
   .then(testDB)
   .catch(console.error)
   .finally(() => client.end());
+
+/* added this functionality to createPost and createInitialPosts */
+// async function createInitialTags() {
+//   console.log("Starting to create tags...");
+//   try {
+//     const [happy, sad, inspo, catman] = await createTags([
+//       "#happy",
+//       "#worst-day-ever",
+//       "#youcandoanything",
+//       "#catmandoeverything",
+//     ]);
+
+//     const [postOne, postTwo, postThree] = await getAllPosts();
+
+//     await addTagsToPost(postOne.id, [happy, inspo]);
+//     await addTagsToPost(postTwo.id, [sad, inspo]);
+//     await addTagsToPost(postThree.id, [happy, catman, inspo]);
+
+//     console.log("Finished creating tags!");
+//   } catch (error) {
+//     console.error("Error creating tags!");
+//     throw error;
+//   }
+// }
+

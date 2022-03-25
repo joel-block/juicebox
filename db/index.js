@@ -67,7 +67,8 @@ async function updateUser(id, fields = {}) {
 }
 
 // adds data into a row in posts table and returns post object
-async function createPost({ authorId, title, content }) {
+// added tags to createPost
+async function createPost({ authorId, title, content, tags = [] }) {
   try {
     // destructures and returns the post object from the query response
     const {
@@ -80,7 +81,12 @@ async function createPost({ authorId, title, content }) {
     `,
       [authorId, title, content]
     );
-    return post;
+
+    // add tags to tags table and create a tagList array
+    const tagList = await createTags(tags);
+
+    // return the optimized post object with added tags, linking tags and posts tables
+    return await addTagsToPost(post.id, tagList);
   } catch (error) {
     throw error;
   }
@@ -115,25 +121,70 @@ async function updatePost(id, { title, content, active }) {
     throw error;
   }
 }
+/* *********Rewritten below to optimize post objects********* */
+// // returns an array of all rows (as post objects) in posts table
+// async function getAllPosts() {
+//   const { rows } = await client.query(`
+//     SELECT *
+//     FROM posts;
+//     `);
+//   return rows;
+// }
 
-// returns an array of all rows (as post objects) in posts table
+// returns an array of all rows (as optimized post objects) in posts table
 async function getAllPosts() {
-  const { rows } = await client.query(`
-    SELECT *
-    FROM posts;
+  try {
+    // grabbing an array of ids from all posts to use below
+    const { rows: postIds } = await client.query(`
+      SELECT id
+      FROM posts;
     `);
+
+    // using Promise.all() to run async functions in parallel
+    const posts = await Promise.all(
+      // mapping over the array of ids to get the optimized post objects
+      postIds.map((post) => getPostById(post.id))
+    );
+
+    return posts;
+  } catch (error) {
+    throw error;
+  }
   return rows;
 }
 
-// returns an array of post objects by user
+/* *********Rewritten below to optimize post objects********* */
+// // returns an array of post objects by user
+// async function getPostsByUser(userId) {
+//   try {
+//     const { rows } = await client.query(`
+//       SELECT * FROM posts
+//       WHERE "authorId"=${userId};
+//     `);
+
+//     return rows;
+//   } catch (error) {
+//     throw error;
+//   }
+// }
+
+// returns an array of optimized post objects by user
 async function getPostsByUser(userId) {
   try {
-    const { rows } = await client.query(`
-      SELECT * FROM posts
+    // grabbing an array of ids from the user's posts to use below
+    const { rows: postIds } = await client.query(`
+      SELECT id
+      FROM posts
       WHERE "authorId"=${userId};
     `);
 
-    return rows;
+    // using Promise.all() to run async functions in parallel
+    const posts = await Promise.all(
+      // mapping over the array of ids to get the optimized post objects
+      postIds.map((post) => getPostById(post.id))
+    );
+
+    return posts;
   } catch (error) {
     throw error;
   }
@@ -205,23 +256,19 @@ async function createTags(tagList) {
 
 // create an individual tag that will eventually be attached to post object
 async function createPostTag(postId, tagId) {
-  console.log('attempting to run createPostTag...')
   try {
-    await client.query(`
+    await client.query(
+      `
       INSERT INTO post_tags("postId", "tagId")
       VALUES ($1, $2)
       ON CONFLICT ("postId", "tagId") DO NOTHING;
-      `, [postId, tagId]);
+      `,
+      [postId, tagId]
+    );
   } catch (error) {
     throw error;
   }
 }
-
-// client.connect()
-//   .then(() => createPostTag(2, 2))
-//   .catch(console.error)
-//   .finally(() => client.end());
-
 
 // add tags to post that will eventually be attached to post object
 async function addTagsToPost(postId, tagList) {
