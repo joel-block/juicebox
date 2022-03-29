@@ -10,12 +10,20 @@ postsRouter.use((req, res, next) => {
   next();
 });
 
-postsRouter.get("/", async (req, res) => {
-  const posts = await getAllPosts();
+postsRouter.get("/", async (req, res, next) => {
+  try {
+    const allPosts = await getAllPosts();
 
-  res.send({
-    posts,
-  });
+    const posts = allPosts.filter((post) => {
+      return post.active || (req.user && post.author.id === req.user.id);
+    });
+
+    res.send({
+      posts,
+    });
+  } catch ({ name, message }) {
+    next({ name, message });
+  }
 });
 
 postsRouter.post("/", requireUser, async (req, res, next) => {
@@ -74,6 +82,33 @@ postsRouter.patch("/:postId", requireUser, async (req, res, next) => {
         name: "UnauthorizedUserError",
         message: "You cannot update a post that is not yours",
       });
+    }
+  } catch ({ name, message }) {
+    next({ name, message });
+  }
+});
+
+postsRouter.delete("/:postId", requireUser, async (req, res, next) => {
+  try {
+    const post = await getPostById(req.params.postId);
+
+    if (post && post.author.id === req.user.id) {
+      const updatedPost = await updatePost(post.id, { active: false });
+
+      res.send({ post: updatedPost });
+    } else {
+      // if there was a post, throw UnauthorizedUserError, otherwise throw PostNotFoundError
+      next(
+        post
+          ? {
+              name: "UnauthorizedUserError",
+              message: "You cannot delete a post which is not yours",
+            }
+          : {
+              name: "PostNotFoundError",
+              message: "That post does not exist",
+            }
+      );
     }
   } catch ({ name, message }) {
     next({ name, message });
