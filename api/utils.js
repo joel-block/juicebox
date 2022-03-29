@@ -9,6 +9,10 @@ function requireUser(req, res, next) {
   next();
 }
 
+function requireActiveUser(req, res, next) {
+  
+}
+
 module.exports = {
   requireUser,
 };
