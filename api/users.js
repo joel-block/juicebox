@@ -1,5 +1,6 @@
 const express = require("express");
 const usersRouter = express.Router();
+const { requireUser } = require("./utils");
 
 const {
   getAllUsers,
@@ -40,7 +41,7 @@ usersRouter.post("/login", async (req, res, next) => {
 
     if (user && user.password == password) {
       const token = jwt.sign(
-        { id: user.id, username: user.username },
+        { id: user.id, username: user.username, active: user.active },
         process.env.JWT_SECRET
       );
       // create token & return to user
@@ -81,6 +82,7 @@ usersRouter.post("/register", async (req, res, next) => {
       {
         id: user.id,
         username,
+        active: user.active,
       },
       process.env.JWT_SECRET,
       {
@@ -89,9 +91,49 @@ usersRouter.post("/register", async (req, res, next) => {
     );
 
     res.send({
-      message: "thank you for signing up",
+      message: "Thank you for signing up!",
       token,
     });
+  } catch ({ name, message }) {
+    next({ name, message });
+  }
+});
+
+usersRouter.patch("/:userId", requireUser, async (req, res, next) => {
+  const { username, password, location } = req.body;
+
+  const updateFields = {};
+  if (username) {
+    updateFields.username = username;
+  }
+
+  if (password) {
+    updateFields.password = password;
+  }
+
+  if (location) {
+    updateFields.location = location;
+  }
+
+  if (req.body.hasOwnProperty("active")) {
+    const { active } = req.body;
+    updateFields.active = active;
+  }
+
+  try {
+    const user = await getUserById(req.params.userId)
+
+    if (user.id === req.user.id) {
+      const updatedUser = await updateUser(req.user.id, updateFields);
+
+      res.send({ user: updatedUser });
+    } else {
+      // if not the user, throw UnauthorizedUserError
+      next({
+        name: "UnauthorizedUserError",
+        message: "You cannot update another user",
+      });
+    }
   } catch ({ name, message }) {
     next({ name, message });
   }

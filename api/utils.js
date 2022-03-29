@@ -10,9 +10,16 @@ function requireUser(req, res, next) {
 }
 
 function requireActiveUser(req, res, next) {
-  
+  if (!req.user.active) {
+    next({
+      name: "InactiveUserError",
+      message: "This user account was deleted.",
+    });
+  }
+  next();
 }
 
 module.exports = {
   requireUser,
+  requireActiveUser,
 };
