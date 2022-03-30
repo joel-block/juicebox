@@ -1,9 +1,13 @@
 const express = require("express");
+// acts as main hub for other routes that branch from /api
 const apiRouter = express.Router();
 
+// allows for creation of json web tokens for user authorisation
 const jwt = require("jsonwebtoken");
-const { getUserById } = require("../db");
+// pulls secret from .env to be used for token creation
 const { JWT_SECRET } = process.env;
+
+const { getUserById } = require("../db");
 
 // set `req.user` if possible
 apiRouter.use(async (req, res, next) => {
@@ -13,12 +17,16 @@ apiRouter.use(async (req, res, next) => {
   if (!auth) {
     // nothing to see here
     next();
+    // if Authorization header starts with 'Bearer '
   } else if (auth.startsWith(prefix)) {
+    // cut off 'Bearer ' and return token string
     const token = auth.slice(prefix.length);
 
     try {
+      // pull id from the initial token information
       const { id } = jwt.verify(token, JWT_SECRET);
 
+      // if there is an id, set req.user to user object using user.id
       if (id) {
         req.user = await getUserById(id);
         next();
@@ -35,6 +43,7 @@ apiRouter.use(async (req, res, next) => {
 });
 
 apiRouter.use((req, res, next) => {
+  // log if there is a req.user
   if (req.user) {
     console.log("User is set:", req.user);
   }
@@ -42,6 +51,7 @@ apiRouter.use((req, res, next) => {
   next();
 });
 
+// pulls routes from export.modules and adds them to apiRouter
 const usersRouter = require("./users");
 apiRouter.use("/users", usersRouter);
 
@@ -51,6 +61,7 @@ apiRouter.use("/posts", postsRouter);
 const tagsRouter = require("./tags");
 apiRouter.use("/tags", tagsRouter);
 
+// error handling
 apiRouter.use((error, req, res, next) => {
   res.send({
     name: error.name,

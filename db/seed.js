@@ -10,6 +10,9 @@ const {
   getPostsByTagName,
 } = require("./index");
 
+/* DELETE TABLES */
+
+// deletes tables
 async function dropTables() {
   try {
     console.log("Starting to drop tables...");
@@ -30,6 +33,9 @@ async function dropTables() {
   }
 }
 
+/* INITIALIZE TABLES */
+
+// creates each table
 async function createTables() {
   try {
     console.log("Starting to build tables...");
@@ -77,6 +83,7 @@ async function createTables() {
   }
 }
 
+// adds rows to users table
 async function createInitialUsers() {
   try {
     console.log("Starting to create users...");
@@ -109,6 +116,42 @@ async function createInitialUsers() {
   }
 }
 
+// adds initial rows to posts table, tags table, and posts_tags table
+async function createInitialPosts() {
+  console.log("Starting to create initial posts...");
+  try {
+    const [albert, sandra, glamgal] = await getAllUsers();
+
+    await createPost({
+      authorId: albert.id,
+      title: "First Post",
+      content:
+        "This is my first post. I hope I love writing blogs as much as I love writing them.",
+      tags: ["#happy", "#youcandoanything"],
+    });
+
+    await createPost({
+      authorId: sandra.id,
+      title: "Beach",
+      content: "I like the sand.",
+      tags: ["#happy", "#worst-day-ever"],
+    });
+
+    await createPost({
+      authorId: glamgal.id,
+      title: "City Living",
+      content: "My ride on the subway today was AWFUL.",
+      tags: ["#happy", "#youcandoanything", "#catmandoeverything"],
+    });
+
+    console.log("Finished creating inital posts!");
+  } catch (error) {
+    console.error("Problem creating inital posts!");
+    throw error;
+  }
+}
+
+// checks if all functions are working and all tables are connected
 async function testDB() {
   try {
     console.log("Starting to test database...");
@@ -148,40 +191,7 @@ async function testDB() {
   }
 }
 
-async function createInitialPosts() {
-  console.log("Starting to create initial posts...");
-  try {
-    const [albert, sandra, glamgal] = await getAllUsers();
-
-    await createPost({
-      authorId: albert.id,
-      title: "First Post",
-      content:
-        "This is my first post. I hope I love writing blogs as much as I love writing them.",
-      tags: ["#happy", "#youcandoanything"],
-    });
-
-    await createPost({
-      authorId: sandra.id,
-      title: "Beach",
-      content: "I like the sand.",
-      tags: ["#happy", "#worst-day-ever"],
-    });
-
-    await createPost({
-      authorId: glamgal.id,
-      title: "City Living",
-      content: "My ride on the subway today was AWFUL.",
-      tags: ["#happy", "#youcandoanything", "#catmandoeverything"],
-    });
-
-    console.log("Finished creating inital posts!");
-  } catch (error) {
-    console.error("Problem creating inital posts!");
-    throw error;
-  }
-}
-
+// starts database over
 async function rebuildDB() {
   try {
     client.connect();
@@ -195,31 +205,8 @@ async function rebuildDB() {
   }
 }
 
+// calls rebuildDB, tests it, and catches errors
 rebuildDB()
   .then(testDB)
   .catch(console.error)
   .finally(() => client.end());
-
-/* added this functionality to createPost and createInitialPosts */
-// async function createInitialTags() {
-//   console.log("Starting to create tags...");
-//   try {
-//     const [happy, sad, inspo, catman] = await createTags([
-//       "#happy",
-//       "#worst-day-ever",
-//       "#youcandoanything",
-//       "#catmandoeverything",
-//     ]);
-
-//     const [postOne, postTwo, postThree] = await getAllPosts();
-
-//     await addTagsToPost(postOne.id, [happy, inspo]);
-//     await addTagsToPost(postTwo.id, [sad, inspo]);
-//     await addTagsToPost(postThree.id, [happy, catman, inspo]);
-
-//     console.log("Finished creating tags!");
-//   } catch (error) {
-//     console.error("Error creating tags!");
-//     throw error;
-//   }
-// }

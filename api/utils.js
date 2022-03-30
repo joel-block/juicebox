@@ -1,3 +1,4 @@
+// middleware function to check if a user is logged in
 function requireUser(req, res, next) {
   if (!req.user) {
     next({
@@ -9,6 +10,7 @@ function requireUser(req, res, next) {
   next();
 }
 
+// middleware function to check if an active user is logged in
 function requireActiveUser(req, res, next) {
   if (!req.user.active) {
     next({

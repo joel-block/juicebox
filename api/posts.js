@@ -2,18 +2,24 @@ const express = require("express");
 const postsRouter = express.Router();
 
 const { getAllPosts, createPost, updatePost, getPostById } = require("../db");
-const { requireUser, requireActiveUser } = require("./utils");
+const { requireActiveUser } = require("./utils");
 
+// middleware to log any requests to /posts
 postsRouter.use((req, res, next) => {
   console.log("A request is being made to /posts");
 
   next();
 });
 
+// have access all active posts at localhost3000/api/posts/
 postsRouter.get("/", async (req, res, next) => {
   try {
+    // get all posts
     const allPosts = await getAllPosts();
 
+    // filter posts to return if:
+    // both the post and post author are active OR
+    // if there is a req.user set and the user is the post author
     const posts = allPosts.filter((post) => {
       return (
         (post.active && post.author.active) ||
@@ -29,10 +35,14 @@ postsRouter.get("/", async (req, res, next) => {
   }
 });
 
+// POST route for /posts for only active users
 postsRouter.post("/", requireActiveUser, async (req, res, next) => {
+  // pulls infor from req.body
   const { title, content, tags = "" } = req.body;
 
+  // splits tags string into a formatted array
   const tagArr = tags.trim().split(/\s+/);
+  // establishes new post object
   const postData = {};
 
   // only send the tags if there are some to send
@@ -56,12 +66,17 @@ postsRouter.post("/", requireActiveUser, async (req, res, next) => {
   }
 });
 
+// PATCH route for posts/:postId for active users
 postsRouter.patch("/:postId", requireActiveUser, async (req, res, next) => {
+  // pull postId from req.params, ie the URL
   const { postId } = req.params;
+  // pull info from req.body
   const { title, content, tags } = req.body;
 
+  // establish update object
   const updateFields = {};
 
+  // if each key-value pair exists, format if necessary, and add to object
   if (tags && tags.length > 0) {
     updateFields.tags = tags.trim().split(/\s+/);
   }
@@ -75,8 +90,10 @@ postsRouter.patch("/:postId", requireActiveUser, async (req, res, next) => {
   }
 
   try {
+    // get original post using postId from req.params
     const originalPost = await getPostById(postId);
 
+    // verify user and post author are the same before sending update
     if (originalPost.author.id === req.user.id) {
       const updatedPost = await updatePost(postId, updateFields);
       res.send({ post: updatedPost });
@@ -91,11 +108,15 @@ postsRouter.patch("/:postId", requireActiveUser, async (req, res, next) => {
   }
 });
 
+// DELETE route for active users
 postsRouter.delete("/:postId", requireActiveUser, async (req, res, next) => {
   try {
+    // retrieve post object using req.params
     const post = await getPostById(req.params.postId);
 
+    // verify post exists and that the user and post author are the same
     if (post && post.author.id === req.user.id) {
+      // change post.active to false rather than delete post completely
       const updatedPost = await updatePost(post.id, { active: false });
 
       res.send({ post: updatedPost });

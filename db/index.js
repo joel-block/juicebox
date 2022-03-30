@@ -96,6 +96,7 @@ async function getUserById(userId) {
   }
 }
 
+// returns a user object using username as the argument
 async function getUserByUsername(username) {
   try {
     const {
@@ -392,6 +393,7 @@ async function getPostsByTagName(tagName) {
   }
 }
 
+// retrieves all tag objects from tags table
 async function getAllTags() {
   try {
     const { rows } = await client.query(`
