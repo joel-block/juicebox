@@ -1,6 +1,6 @@
 const express = require("express");
 const usersRouter = express.Router();
-const { requireUser } = require("./utils");
+const { requireUser, requireActiveUser } = require("./utils");
 
 const {
   getAllUsers,
